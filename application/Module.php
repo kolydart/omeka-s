@@ -117,6 +117,12 @@ class Module extends AbstractModule
 
         $sharedEventManager->attach(
             '*',
+            'api.delete.pre',
+            [$this, 'deleteFulltextPre']
+        );
+
+        $sharedEventManager->attach(
+            '*',
             'api.delete.post',
             [$this, 'deleteFulltext']
         );
@@ -516,6 +522,16 @@ class Module extends AbstractModule
             $event->getParam('response')->getContent(),
             $event->getTarget()
         );
+    }
+
+    public function deleteFulltextPre(ZendEvent $event)
+    {
+        $request = $event->getParam('request');
+        if ('site_pages' === $request->getResource()) {
+            $em = $this->getServiceLocator()->get('Omeka\EntityManager');
+            $sitePage = $em->getRepository('Omeka\Entity\SitePage')->findOneBy($request->getId());
+            $request->setId($sitePage->getId());
+        }
     }
 
     /**
